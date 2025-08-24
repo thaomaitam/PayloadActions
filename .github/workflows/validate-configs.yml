@@ -1,0 +1,93 @@
+name: Validate Device Configs
+
+on:
+  pull_request:
+    paths:
+      - 'configs/*.json'
+  push:
+    paths:
+      - 'configs/*.json'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Validate JSON structure
+        run: |
+          cat > validate.py << 'EOF'
+          import json
+          import os
+          import sys
+          
+          REQUIRED_FIELDS = [
+              'BRAND', 'DEVICE', 'MODEL', 'FINGERPRINT',
+              'RELEASE', 'SDK', 'SECURITY_PATCH'
+          ]
+          
+          errors = []
+          
+          for file in os.listdir('configs'):
+              if not file.endswith('.json'):
+                  continue
+              
+              filepath = f'configs/{file}'
+              print(f"Validating {file}...")
+              
+              try:
+                  with open(filepath, 'r') as f:
+                      data = json.load(f)
+                  
+                  # Check structure
+                  for key in data.keys():
+                      if key.startswith('PACKAGES_') and key.endswith('_DEVICE'):
+                          device_config = data[key]
+                          
+                          # Check required fields
+                          for field in REQUIRED_FIELDS:
+                              if field not in device_config:
+                                  errors.append(f"{file}: Missing field {field}")
+                              elif not device_config[field]:
+                                  errors.append(f"{file}: Empty field {field}")
+                          
+                          # Validate fingerprint format
+                          fp = device_config.get('FINGERPRINT', '')
+                          if fp and ':' not in fp:
+                              errors.append(f"{file}: Invalid fingerprint format")
+                          
+                          # Validate SDK is numeric
+                          sdk = device_config.get('SDK', '')
+                          if sdk and not sdk.isdigit():
+                              errors.append(f"{file}: SDK must be numeric")
+                  
+              except json.JSONDecodeError as e:
+                  errors.append(f"{file}: Invalid JSON - {e}")
+              except Exception as e:
+                  errors.append(f"{file}: Error - {e}")
+          
+          if errors:
+              print("\n❌ Validation failed:")
+              for error in errors:
+                  print(f"  - {error}")
+              sys.exit(1)
+          else:
+              print("\n✅ All configurations valid!")
+          EOF
+          
+          python validate.py
+      
+      - name: 📊 Generate validation report
+        if: always()
+        run: |
+          echo "## 🔍 Configuration Validation Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          
+          for file in configs/*.json; do
+              if [ -f "$file" ]; then
+                  device=$(basename "$file" .json)
+                  echo "- ✅ \`$device\`" >> $GITHUB_STEP_SUMMARY
+              fi
+          done

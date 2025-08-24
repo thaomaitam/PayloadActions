@@ -1,0 +1,93 @@
+name: Auto Update Device Configs
+
+on:
+  schedule:
+    # Run monthly on the 1st
+    - cron: '0 0 1 * *'
+  
+  workflow_dispatch:
+    inputs:
+      check_updates:
+        description: 'Check for fingerprint updates'
+        type: boolean
+        default: true
+
+jobs:
+  check-updates:
+    runs-on: ubuntu-latest
+    
+    outputs:
+      has_updates: ${{ steps.check.outputs.has_updates }}
+      update_list: ${{ steps.check.outputs.update_list }}
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 🔍 Check for updates
+        id: check
+        run: |
+          cat > check_updates.py << 'EOF'
+          import json
+          import requests
+          import os
+          
+          updates = []
+          
+          with open('device_sources.json', 'r') as f:
+              sources = json.load(f)
+          
+          for device in sources['devices']:
+              config_file = f"configs/{device['name']}.json"
+              
+              if os.path.exists(config_file):
+                  # Check if fingerprint changed
+                  with open(config_file, 'r') as f:
+                      current = json.load(f)
+                  
+                  # Fetch latest
+                  response = requests.get(device['url'])
+                  if response.status_code == 200:
+                      for line in response.text.split('\n'):
+                          if 'ro.vendor.build.fingerprint=' in line:
+                              new_fp = line.split('=')[1].strip()
+                              
+                              for key in current:
+                                  if '_DEVICE' in key:
+                                      old_fp = current[key].get('FINGERPRINT', '')
+                                      if old_fp != new_fp:
+                                          updates.append(device['name'])
+                                          print(f"Update available for {device['name']}")
+                                          break
+          
+          if updates:
+              print(f"::set-output name=has_updates::true")
+              print(f"::set-output name=update_list::{','.join(updates)}")
+          else:
+              print(f"::set-output name=has_updates::false")
+          EOF
+          
+          python check_updates.py
+      
+      - name: 📢 Notify updates
+        if: steps.check.outputs.has_updates == 'true'
+        run: |
+          echo "## 🔄 Updates Available" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Devices with updates: ${{ steps.check.outputs.update_list }}" >> $GITHUB_STEP_SUMMARY
+
+  update-configs:
+    needs: check-updates
+    if: needs.check-updates.outputs.has_updates == 'true'
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: 📥 Checkout
+        uses: actions/checkout@v4
+      
+      - name: 🔄 Update configurations
+        run: |
+          # Trigger batch generation workflow
+          gh workflow run device-config-generator.yml
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
