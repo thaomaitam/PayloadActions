@@ -1,47 +1,24 @@
-# Payload Actions
+# 📱 SpoofXManager Device Configurations
 
-This GitHub Actions workflow allows you to automatically extract and release specific files from a ROM URL.
+[![Device Config Generator](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/device-config-generator.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/device-config-generator.yml)
+[![Validation](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/validate-configs.yml/badge.svg)](https://github.com/YOUR_USERNAME/YOUR_REPO/actions/workflows/validate-configs.yml)
 
-## Inputs
+Auto-generated device configurations for SpoofXManager using GitHub Actions.
 
-The following inputs are required when triggering the workflow:
+## 🚀 Quick Start
 
--   `ROM_URL`: The URL of the ROM file to be extracted and released.
--   `DEVICE_NAME`: The name of the device for which the ROM is intended.
--   `EXTRACTED_FILES`: A comma-separated list of files to be extracted from the ROM and included in the release. Available files may include:
+### Generate Single Device Config
 
-    -   "boot.img" - The boot image, which contains the kernel and recovery.
-    -   "dtbo.img" - The device tree binary image, which contains information about the device's hardware.
-    -   "product.img" - The product image, which contains the system's product-specific properties.
-    -   "system.img" - The system image, which contains the system partition.
-    -   "system_ext.img" - The system_ext image, which contains the system_ext partition.
-    -   "vbmeta.img" - The vbmeta image, which contains verified boot metadata.
-    -   "vbmeta_system.img" - The vbmeta_system image, which contains verified boot metadata for the system partition.
-    -   "vendor.img" - The vendor image, which contains the vendor partition.
-    -   "vendor_boot.img" - The vendor boot image, which contains the vendor-specific kernel and ramdisk.
+1. Go to [Actions](https://github.com/YOUR_USERNAME/YOUR_REPO/actions)
+2. Select "Device Configuration Generator"
+3. Click "Run workflow"
+4. Enter:
+   - Device name (e.g., `PIXEL9PRO`)
+   - Vendor build.prop URL
+5. Config will be auto-generated and committed
 
-## Steps
+### Batch Generation
 
-The workflow is composed of the following steps:
+Configs are automatically generated weekly for all devices in `device_sources.json`.
 
-1. Checkout code: Check out the repository code.
-2. Download file: Download the file specified by the ROM_URL input.
-3. Extract Payload: Extract the payload from the downloaded file and output it to the current directory. Additionally, files larger than 2GB will be automatically deleted to comply with GitHub release restrictions, as files larger than 2GB are not allowed.
-4. Upload to Release: Uploads specified files to a GitHub release.
-
-## Usage
-
-1. Fork this repository to your GitHub account.
-2. Go to the "Actions" tab in your forked repository.
-3. Enable GitHub Actions for the repository if it's not already enabled.
-4. Select the workflow named "Extract and Release" from the list of workflows.
-5. Click on the "Run workflow" dropdown button and select the "Run workflow" option.
-6. Enter the required inputs:
-    - `ROM_URL`: The URL of the ROM file to be extracted and released.
-    - `DEVICE_NAME`: The name of the device for which the ROM is intended.
-    - `EXTRACTED_FILES`: A comma-separated list of files to be extracted from the ROM and included in the release (e.g., "boot.img, dtbo.img, product.img").
-7. Click the "Run workflow" button to trigger the workflow with the provided inputs.
-
-## Note
-
-The OTA Extractor package that is used in this workflow is taken from https://github.com/tobyxdd/android-ota-payload-extractor.
+## 📁 Structure

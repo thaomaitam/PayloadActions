@@ -1,0 +1,30 @@
+{
+  "version": "1.0",
+  "last_updated": "2024-01-01",
+  "devices": [
+    {
+      "name": "PIXEL9PRO",
+      "model": "Pixel 9 Pro",
+      "codename": "caiman",
+      "url": "https://dumps.tadiphone.dev/dumps/google/caiman/vendor/build.prop"
+    },
+    {
+      "name": "PIXEL8A",
+      "model": "Pixel 8a",
+      "codename": "akita",
+      "url": "https://dumps.tadiphone.dev/dumps/google/akita/vendor/build.prop"
+    },
+    {
+      "name": "S24ULTRA",
+      "model": "Galaxy S24 Ultra",
+      "codename": "dm3q",
+      "url": "https://dumps.tadiphone.dev/dumps/samsung/dm3q/vendor/build.prop"
+    },
+    {
+      "name": "ONEPLUS12",
+      "model": "OnePlus 12",
+      "codename": "waffle",
+      "url": "https://dumps.tadiphone.dev/dumps/oneplus/waffle/vendor/build.prop"
+    }
+  ]
+}
